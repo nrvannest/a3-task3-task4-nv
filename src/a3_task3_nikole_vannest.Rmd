@@ -1,0 +1,144 @@
+---
+title: "a3_task3_nikole_vannest"
+author: "Nikole Vannest"
+date: "11/1/2020"
+output: html_document
+---
+
+```{r setup, message=F, warning=F}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(kableExtra)
+library(lubridate)
+```
+
+## Section 1: Size comparisons
+
+In the following code chunks I will create a exploratory data visuals comparing sizes of purple and red sea urchins.
+
+Data source: Reed, D. 2020. SBC LTER: Reef: Long-term experiment: Kelp removal: Urchin size frequency distribution ver 20. Environmental Data Initiative. Click [here](https://doi.org/10.6073/pasta/5a1e9ef03aa47bd2225c0bb98a02a63b) for more info.
+
+```{r, message=F, warning=F}
+sea_urchins <- read.csv(here("data", "urchins.csv")) #Read in csv file
+
+urchins <- sea_urchins %>% 
+  clean_names() #clean up the column names
+```
+
+#### Exploratory histogram
+
+```{r, message=F, warning=F}
+ggplot(data = urchins, aes(x = size)) +
+  geom_histogram() +
+  facet_wrap(~common_name) + #split up graph by common name
+  labs(x ="Urchin diameter (cm)", #Update axis labels and title
+       y = "Number of Observations",
+       title = "Comparing Observed Diameters in Purple v. Red Urchins")
+```
+
+#### Exploratory boxplot
+
+```{r, message=F, warning=F}
+ggplot(data = urchins, aes(x = common_name, y = size)) +
+  geom_boxplot() +
+  labs(x = c(), #Leave empty, label already defined.
+       y = "Urchin diameter (cm)", #Update axis labels and title
+       title = "Comparing Observed Diameters in Purple v. Red Urchins")
+```
+
+#### Summary statistics table including mean, median, standard deviation and number of observations
+
+```{r, message=F, warning=F}
+urchin_table <- urchins %>% 
+  group_by(common_name) %>% 
+  summarize(mean_size = mean(size), 
+            median_size = median(size),
+            sd_size = sd(size),
+            n = n()) 
+  
+kable(urchin_table) %>% #using kable function for table, neat!
+  kable_styling(latex_options = "scale_down") #Spread out col names so is readable
+
+purple <- urchin_table %>% 
+  filter(common_name == "Purple Urchin") #separate table into individual urchin types
+red <-  urchin_table %>% 
+  filter(common_name == "Red Urchin")
+
+percent_diff <- abs((purple$mean_size - red$mean_size)/((purple$mean_size + red$mean_size)/2))*100 #find percent difference between means
+abs(purple$mean_size - red$mean_size) #actual difference in means
+percent_diff
+
+```
+
+**In context:** In the figures and table above, data is compared between two species of sea urchin, red and purple. The actual difference of the mean diameter is 2.31 cm, and the percent difference is 41%. This is consistent with the information we are getting from the boxplot above, showing a fairly clear difference in means that would imply these are two distinctly separate groups based on their diameter alone.
+
+
+
+
+## Section 2: Exploring purple urchin counts by year and site
+
+Below the data is cleaned up for the data subset 'Purple Urchins' and information regarding the site column has been updated to site_full to include the full name of the site. 
+
+```{r, message=F, warning=F}
+purple_urchins <- urchins %>% 
+  filter(common_name == "Purple Urchin") %>% 
+  mutate(date = mdy(date)) %>% 
+  mutate(year = year(date)) %>% 
+  mutate(site_full = case_when( 
+    site %in% "NAPL" ~ "Naples Reef",
+    site %in% "AQUE" ~ "Arroyo Quemando Reef",
+    site %in% "CARP" ~ "Carpinteria Reef",
+    site %in% "MOHK" ~ "Mohawk Reef",
+    site %in% "IVEE" ~ "Isla Vista Reef"
+  ))
+```
+
+### Summary Table
+
+Displays total number of purple urchin observations, grouped by site and year
+
+```{r, message=F, warning=F}
+
+purple_summary <- purple_urchins %>% 
+  group_by(site, year) %>% 
+  summarize(n = n()) 
+```
+
+### Exploratory Graph
+
+Displays number of urchins at each site for years recorded
+
+```{r}
+ggplot(purple_urchins, aes(x = year)) +
+  geom_histogram() +
+  facet_wrap(~site_full) + 
+  labs(x = "Year",
+       y = "Number of Observations",
+       title = "Number of Purple Urchins Observed Between 2008-2019")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
