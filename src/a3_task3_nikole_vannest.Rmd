@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, message=F, warning=F}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 library(tidyverse)
 library(here)
 library(janitor)
@@ -20,7 +20,7 @@ In the following code chunks I will create a exploratory data visuals comparing 
 
 Data source: Reed, D. 2020. SBC LTER: Reef: Long-term experiment: Kelp removal: Urchin size frequency distribution ver 20. Environmental Data Initiative. Click [here](https://doi.org/10.6073/pasta/5a1e9ef03aa47bd2225c0bb98a02a63b) for more info.
 
-```{r, message=F, warning=F}
+```{r}
 sea_urchins <- read.csv(here("data", "urchins.csv")) #Read in csv file
 
 urchins <- sea_urchins %>% 
@@ -29,7 +29,7 @@ urchins <- sea_urchins %>%
 
 #### Exploratory histogram
 
-```{r, message=F, warning=F}
+```{r}
 ggplot(data = urchins, aes(x = size)) +
   geom_histogram() +
   facet_wrap(~common_name) + #split up graph by common name
@@ -40,7 +40,7 @@ ggplot(data = urchins, aes(x = size)) +
 
 #### Exploratory boxplot
 
-```{r, message=F, warning=F}
+```{r}
 ggplot(data = urchins, aes(x = common_name, y = size)) +
   geom_boxplot() +
   labs(x = c(), #Leave empty, label already defined.
@@ -50,7 +50,7 @@ ggplot(data = urchins, aes(x = common_name, y = size)) +
 
 #### Summary statistics table including mean, median, standard deviation and number of observations
 
-```{r, message=F, warning=F}
+```{r}
 urchin_table <- urchins %>% 
   group_by(common_name) %>% 
   summarize(mean_size = mean(size), 
@@ -81,7 +81,7 @@ percent_diff
 
 Below the data is cleaned up for the data subset 'Purple Urchins' and information regarding the site column has been updated to site_full to include the full name of the site. 
 
-```{r, message=F, warning=F}
+```{r}
 purple_urchins <- urchins %>% 
   filter(common_name == "Purple Urchin") %>% 
   mutate(date = mdy(date)) %>% 
@@ -99,11 +99,11 @@ purple_urchins <- urchins %>%
 
 Displays total number of purple urchin observations, grouped by site and year
 
-```{r, message=F, warning=F}
+```{r}
 
 purple_summary <- purple_urchins %>% 
   group_by(site, year) %>% 
-  summarize(n = n()) 
+  count(site)
 ```
 
 ### Exploratory Graph

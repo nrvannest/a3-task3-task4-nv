@@ -1,0 +1,91 @@
+---
+title: "a3_task4_nikole_vannest"
+author: "Nikole Vannest"
+date: "11/2/2020"
+output: html_document
+---
+
+# Task 4
+### Naples Reef purple urchins
+
+```{r setup, message=F, warning=F}
+knitr::opts_chunk$set(echo = TRUE, message=F, warning=F)
+library(tidyverse)
+library(here)
+library(janitor)
+library(lubridate)
+library(kableExtra)
+```
+
+### Read in data and clean up names
+```{r}
+urchins_raw <- read.csv(here("data", "urchins.csv")) 
+urchins <- urchins_raw %>% 
+  clean_names()
+```
+
+Compare the mean size of purple urchins in control or annual sections of Naples Reef in January 2020
+
+```{r}
+nr_2010 <- urchins %>% 
+  mutate(date = mdy(date)) %>% 
+  mutate(month = month(date)) %>% 
+  mutate(year = year(date)) %>% 
+  filter(common_name == "Purple Urchin", #Filter for purple species
+         site == "NAPL", #Keep only obs in Naples Reef
+         month == 1, #Keep only obs in January
+         year == 2010) #Keep only obs in 2010
+```
+
+Exploratory QQ plot and histogram
+
+```{r}
+ggplot(nr_2010, aes(x = size)) + #exploratory histogram
+  geom_histogram() +
+  facet_wrap(~treatment)
+
+ggplot(nr_2010, aes(sample = size)) + #exploratory QQ plot
+  geom_qq() +
+  facet_wrap(~treatment)
+```
+
+Summary table of statistics
+
+```{r}
+nr_table <- nr_2010 %>% #table of summary statistics
+  group_by(treatment) %>% 
+  summarize(mean = mean(size),
+            median = median(size),
+            sd = sd(size),
+            n = n()) 
+
+nr_table %>% #View table output
+  kable() %>% 
+  kable_styling(latex_options = "styling down")
+```
+
+T-test
+
+```{r}
+control_sample <- nr_2010 %>% 
+  filter(treatment == "CONTROL") %>% 
+  pull(size)
+
+annual_sample <- nr_2010 %>% 
+  filter(treatment == "ANNUAL") %>% 
+  pull(size)
+
+t.test(x = control_sample, y = annual_sample)
+
+percent_diff <- abs((mean(control_sample) - mean(annual_sample))/((mean(control_sample) + mean(annual_sample))/2))*100
+
+percent_diff
+```
+
+
+**Comprehensive statement:** Two treatments were tested here, control and annual kelp removal. In the graphs and tables above, we are looking at how these treatments have affected the diameter of Purple urchin populations in Naples Reef. Based on the information provided by the exploratory graphs as well as the t-test and calculating the percent difference, it would seem that there is not a significant difference between the two treatments. The p-value is 0.2536, and the percent difference of the means is only 5%. Such a high p-value would indicate that there is a high probability that any difference we would observe in samples occurs due to random chance, and that these two sets of data are not significantly different enough to be two distinct groups.
+
+
+
+
+
